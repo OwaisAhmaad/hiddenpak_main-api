@@ -43,9 +43,9 @@ router.get('/', async (_req, res: Response): Promise<void> => {
         contactPhone: '+92 300 1234567',
       });
     }
-    res.json(settings);
+    res.json({ success: true, data: settings });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: (error as Error).message });
+    res.status(500).json({ success: false, message: 'Server error', error: (error as Error).message });
   }
 });
 
@@ -87,9 +87,9 @@ router.put('/', auth, async (req: AuthRequest, res: Response): Promise<void> => 
       Object.assign(settings, req.body);
       await settings.save();
     }
-    res.json(settings);
+    res.json({ success: true, data: settings });
   } catch (error) {
-    res.status(400).json({ message: 'Failed to update settings', error: (error as Error).message });
+    res.status(400).json({ success: false, message: 'Failed to update settings', error: (error as Error).message });
   }
 });
 

@@ -60,7 +60,7 @@ router.get('/', auth, async (_req: AuthRequest, res: Response): Promise<void> =>
     ]);
     const recentEvents = await AnalyticsEvent.find().sort({ createdAt: -1 }).limit(10);
 
-    res.json({ totalEvents, eventTypes, recentEvents });
+    res.json({ success: true, data: { totalEvents, eventTypes, recentEvents } });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: (error as Error).message });
   }

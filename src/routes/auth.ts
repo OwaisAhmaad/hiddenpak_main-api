@@ -84,6 +84,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     );
 
     res.json({
+      success: true,
       token,
       admin: {
         id: admin._id,
