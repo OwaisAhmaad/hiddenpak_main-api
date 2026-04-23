@@ -42,8 +42,15 @@ app.use(cors({
 
 app.use(express.json({ limit: '10mb' }));
 
-// Connect to MongoDB (cached for serverless)
-connectDB();
+// Ensure DB is connected before every request (critical for Vercel serverless)
+app.use(async (_req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Database connection failed' });
+  }
+});
 
 // Health check
 app.get('/health', (_req, res) => {
