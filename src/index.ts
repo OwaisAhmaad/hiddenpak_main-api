@@ -3,9 +3,7 @@ dotenv.config();
 
 import express from 'express';
 import cors from 'cors';
-import swaggerUi from 'swagger-ui-express';
 import connectDB from './config/database';
-import swaggerSpec from './swagger';
 
 // Route imports
 import authRoutes from './routes/auth';
@@ -20,15 +18,32 @@ import analyticsRoutes from './routes/analytics';
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+// CORS — allow frontend origins
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://hiddenpak.com',
+  'https://www.hiddenpak.com',
+  // Vercel preview deployments
+  /^https:\/\/hiddenpak.*\.vercel\.app$/,
+];
 
-// Connect to MongoDB
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    const allowed = allowedOrigins.some(o =>
+      typeof o === 'string' ? o === origin : o.test(origin)
+    );
+    if (allowed) return callback(null, true);
+    callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
+  credentials: true,
+}));
+
+app.use(express.json({ limit: '10mb' }));
+
+// Connect to MongoDB (cached for serverless)
 connectDB();
-
-// Swagger UI
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Health check
 app.get('/health', (_req, res) => {
@@ -45,9 +60,16 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/analytics', analyticsRoutes);
 
-app.listen(PORT, () => {
-  console.log(`🚀 HiddenPak API running on port ${PORT}`);
-  console.log(`📚 Swagger docs available at http://localhost:${PORT}/api-docs`);
+// 404 handler
+app.use((_req, res) => {
+  res.status(404).json({ success: false, message: 'Route not found' });
 });
+
+// Only start HTTP server when running locally (not in Vercel serverless)
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`HiddenPak API running on port ${PORT}`);
+  });
+}
 
 export default app;
