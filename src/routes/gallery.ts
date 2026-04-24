@@ -36,6 +36,19 @@ router.post('/', auth, async (req: AuthRequest, res: Response): Promise<void> =>
   }
 });
 
+router.put('/:id', auth, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const image = await GalleryImage.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    if (!image) {
+      res.status(404).json({ success: false, message: 'Gallery image not found' });
+      return;
+    }
+    res.json({ success: true, data: image });
+  } catch (error) {
+    res.status(400).json({ success: false, message: 'Failed to update gallery image', error: (error as Error).message });
+  }
+});
+
 router.delete('/:id', auth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const image = await GalleryImage.findByIdAndDelete(req.params.id);
